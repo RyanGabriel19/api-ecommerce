@@ -40,11 +40,7 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ProductResponseDTO findById(@PathVariable Long id) {
-        Product product = productRepository.findById(id).orElse(null);
-
-        if (product == null) {
-            throw new IllegalArgumentException("Produto não encontrado com o ID: " + id);
-        }
+        Product product = productRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Não encontrado"));
 
         return toResponseDTO(product);
     }

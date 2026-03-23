@@ -31,37 +31,42 @@ public class CategoryController {
 
     @GetMapping
     public List<CategoryResponseDTO> list() {
-        List<Category> categories = categoryRepository.listAll();
+        List<Category> categories = categoryRepository.findAll();
 
         return categories.stream()
-            .map(category -> new CategoryResponseDTO(
-                category.getId(),
-                category.getName()
-            ))
+            .map(category -> toResponseDTO(category))
             .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public CategoryResponseDTO findById(@PathVariable Long id) {
-        Category category = categoryRepository.findById(id);
+        Category category = categoryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Não encontrado"));
 
-        CategoryResponseDTO categoryDTO = new CategoryResponseDTO(
-            category.getId(),
-            category.getName()
-        );
-
-        return categoryDTO;
+        return toResponseDTO(category);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Category add(@Valid @RequestBody Category category) {
-        return categoryRepository.save(category);
+    public CategoryResponseDTO add(@Valid @RequestBody Category category) {
+        Category savedCategory = categoryRepository.save(category);
+
+        return toResponseDTO(savedCategory);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(@PathVariable Long id) {
-        categoryRepository.remove(id);
+        if (!categoryRepository.existsById(id)) {
+            throw new IllegalArgumentException("Categoria não encontrada para remoção. ID: " + id);
+        }
+
+        categoryRepository.deleteById(id);
+    }
+
+    private CategoryResponseDTO toResponseDTO(Category category) {
+        return new CategoryResponseDTO(
+            category.getId(),
+            category.getName()
+        );
     }
 }
