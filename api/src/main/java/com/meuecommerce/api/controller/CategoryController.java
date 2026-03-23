@@ -1,6 +1,7 @@
 package com.meuecommerce.api.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.meuecommerce.api.controller.dto.CategoryResponseDTO;
 import com.meuecommerce.api.domain.model.Category;
 import com.meuecommerce.api.domain.repository.CategoryRepository;
 
@@ -28,13 +30,27 @@ public class CategoryController {
     }
 
     @GetMapping
-    public List<Category> list() {
-        return categoryRepository.listAll();
+    public List<CategoryResponseDTO> list() {
+        List<Category> categories = categoryRepository.listAll();
+
+        return categories.stream()
+            .map(category -> new CategoryResponseDTO(
+                category.getId(),
+                category.getName()
+            ))
+            .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public Category findById(@PathVariable Long id) {
-        return categoryRepository.findById(id);
+    public CategoryResponseDTO findById(@PathVariable Long id) {
+        Category category = categoryRepository.findById(id);
+
+        CategoryResponseDTO categoryDTO = new CategoryResponseDTO(
+            category.getId(),
+            category.getName()
+        );
+
+        return categoryDTO;
     }
 
     @PostMapping
