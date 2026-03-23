@@ -32,46 +32,28 @@ public class ProductController {
 
     @GetMapping
     public List<ProductResponseDTO> list() {
-        List<Product> products = productRepository.listAll();
-
-        return products.stream()
-            .map(product -> new ProductResponseDTO(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getStockQuantity(),
-                new CategoryResponseDTO(
-                    product.getCategory().getId(),
-                    product.getCategory().getName()
-                )
-            ))
-            .collect(Collectors.toList());
+        return productRepository.listAll()
+        .stream()
+        .map(product -> this.toResponseDTO(product))
+        .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public ProductResponseDTO findById(@PathVariable Long id) {
         Product product = productRepository.findById(id);
 
-        ProductResponseDTO productDTO = new ProductResponseDTO(
-            product.getId(),
-            product.getName(),
-            product.getDescription(),
-            product.getPrice(),
-            product.getStockQuantity(),
-            new CategoryResponseDTO(
-                product.getCategory().getId(),
-                product.getCategory().getName()
-            )
-        );
+        if (product == null) {
+            throw new IllegalArgumentException("Produto não encontrado com o ID: " + id);
+        }
 
-        return productDTO;
+        return toResponseDTO(product);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Product add(@Valid @RequestBody Product product) {
-        return productRepository.save(product);
+    public ProductResponseDTO add(@Valid @RequestBody Product product) {
+        Product productSaved = productRepository.save(product);
+        return toResponseDTO(productSaved);
     }
 
     @DeleteMapping("/{id}")
@@ -80,4 +62,23 @@ public class ProductController {
         productRepository.remove(id);
     }
 
+    private ProductResponseDTO toResponseDTO (Product product) {
+        CategoryResponseDTO categoryDTO = null;
+
+        if (product.getCategory() != null) {
+            categoryDTO = new CategoryResponseDTO(
+                product.getCategory().getId(),
+                product.getCategory().getName()
+            );
+        }
+
+        return new ProductResponseDTO(
+            product.getId(),
+            product.getName(),
+            product.getDescription(),
+            product.getPrice(),
+            product.getStockQuantity(),
+            categoryDTO
+        );
+    }
 }
