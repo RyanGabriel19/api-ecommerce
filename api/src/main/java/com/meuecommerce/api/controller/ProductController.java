@@ -32,7 +32,7 @@ public class ProductController {
 
     @GetMapping
     public List<ProductResponseDTO> list() {
-        return productRepository.listAll()
+        return productRepository.findAll()
         .stream()
         .map(product -> this.toResponseDTO(product))
         .collect(Collectors.toList());
@@ -40,7 +40,7 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ProductResponseDTO findById(@PathVariable Long id) {
-        Product product = productRepository.findById(id);
+        Product product = productRepository.findById(id).orElse(null);
 
         if (product == null) {
             throw new IllegalArgumentException("Produto não encontrado com o ID: " + id);
@@ -59,7 +59,11 @@ public class ProductController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(@PathVariable Long id) {
-        productRepository.remove(id);
+        if (!productRepository.existsById(id)) {
+            throw new IllegalArgumentException("Produto não encontrado para remoção. ID: " + id);
+        }
+
+        productRepository.deleteById(id);
     }
 
     private ProductResponseDTO toResponseDTO (Product product) {
