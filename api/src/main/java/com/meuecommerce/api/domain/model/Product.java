@@ -111,5 +111,11 @@ public class Product {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "Product [id=" + id + ", name=" + name + ", description=" + description + ", price=" + price
+                + ", stockQuantity=" + stockQuantity + ", category=" + category + "]";
+    }
+
     
 }
