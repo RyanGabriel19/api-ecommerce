@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.meuecommerce.api.controller.dto.CategoryRequestDTO;
 import com.meuecommerce.api.controller.dto.CategoryResponseDTO;
 import com.meuecommerce.api.domain.model.Category;
 import com.meuecommerce.api.domain.repository.CategoryRepository;
@@ -47,9 +48,11 @@ public class CategoryController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CategoryResponseDTO add(@Valid @RequestBody Category category) {
-        Category savedCategory = categoryRepository.save(category);
+    public CategoryResponseDTO add(@Valid @RequestBody CategoryRequestDTO categoryRequest) {
+        Category category = toEntity(categoryRequest);
 
+        Category savedCategory = categoryRepository.save(category);
+        
         return toResponseDTO(savedCategory);
     }
 
@@ -68,5 +71,13 @@ public class CategoryController {
             category.getId(),
             category.getName()
         );
+    }
+
+    private Category toEntity(CategoryRequestDTO categoryRequest) {
+        Category category = new Category();
+
+        category.setName(categoryRequest.getName());
+        
+        return category;
     }
 }

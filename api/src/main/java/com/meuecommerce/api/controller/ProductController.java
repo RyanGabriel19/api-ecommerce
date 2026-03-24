@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.meuecommerce.api.controller.dto.CategoryResponseDTO;
+import com.meuecommerce.api.controller.dto.ProductRequestDTO;
 import com.meuecommerce.api.controller.dto.ProductResponseDTO;
+import com.meuecommerce.api.domain.model.Category;
 import com.meuecommerce.api.domain.model.Product;
 import com.meuecommerce.api.domain.repository.ProductRepository;
 
@@ -47,8 +49,11 @@ public class ProductController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ProductResponseDTO add(@Valid @RequestBody Product product) {
+    public ProductResponseDTO add(@Valid @RequestBody ProductRequestDTO productRequest) {
+        Product product = toEntity(productRequest);
+
         Product productSaved = productRepository.save(product);
+
         return toResponseDTO(productSaved);
     }
 
@@ -80,5 +85,24 @@ public class ProductController {
             product.getStockQuantity(),
             categoryDTO
         );
+    }
+
+    private Product toEntity(ProductRequestDTO productRequest) {
+        Product product = new Product();
+
+        product.setName(productRequest.getName());
+        product.setDescription(productRequest.getDescription());
+        product.setPrice(productRequest.getPrice());
+        product.setStockQuantity(productRequest.getStockQuantity());
+
+        if (productRequest.getCategoryId() != null) {
+            Category category = new Category();
+
+            category.setId(productRequest.getCategoryId());
+
+            product.setCategory(category);
+        }
+
+        return product;
     }
 }

@@ -9,10 +9,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 
 @Entity
 @Table (name = "product")
@@ -22,21 +18,13 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
     private String name;
     private String description;
-
-    @NotNull
-    @Positive
     private BigDecimal price;
-
-    @NotNull
     private Integer stockQuantity;
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
-    @Valid
-    @NotNull
     private Category category;
     
     public Product() {
