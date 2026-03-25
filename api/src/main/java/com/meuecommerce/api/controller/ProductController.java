@@ -18,6 +18,7 @@ import com.meuecommerce.api.controller.dto.ProductRequestDTO;
 import com.meuecommerce.api.controller.dto.ProductResponseDTO;
 import com.meuecommerce.api.domain.model.Category;
 import com.meuecommerce.api.domain.model.Product;
+import com.meuecommerce.api.domain.repository.CategoryRepository;
 import com.meuecommerce.api.domain.repository.ProductRepository;
 
 import jakarta.validation.Valid;
@@ -27,9 +28,11 @@ import jakarta.validation.Valid;
 public class ProductController {
 
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
-    public ProductController(ProductRepository productRepository) {
+    public ProductController(ProductRepository productRepository, CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @GetMapping
@@ -89,19 +92,19 @@ public class ProductController {
 
     private Product toEntity(ProductRequestDTO productRequest) {
         Product product = new Product();
-
+        
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
         product.setPrice(productRequest.getPrice());
         product.setStockQuantity(productRequest.getStockQuantity());
 
         if (productRequest.getCategoryId() != null) {
-            Category category = new Category();
-
-            category.setId(productRequest.getCategoryId());
+            Category category = categoryRepository.findById(productRequest.getCategoryId())
+            .orElseThrow(() -> new IllegalArgumentException("Categoria não encontrada com o ID: " + productRequest.getCategoryId()));
 
             product.setCategory(category);
         }
+        
 
         return product;
     }
