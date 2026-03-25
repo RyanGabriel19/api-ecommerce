@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -54,6 +55,18 @@ public class CategoryController {
         Category savedCategory = categoryRepository.save(category);
         
         return toResponseDTO(savedCategory);
+    }
+
+    @PutMapping("/{id}")
+    public CategoryResponseDTO update(@PathVariable Long id, @Valid @RequestBody CategoryRequestDTO categoryRequest) {
+        Category existingCategory = categoryRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Categoria não encontrada com o ID: " + id));
+
+         existingCategory.setName(categoryRequest.getName());
+
+         Category updatedCategory = categoryRepository.save(existingCategory);
+
+         return toResponseDTO(updatedCategory);
     }
 
     @DeleteMapping("/{id}")
