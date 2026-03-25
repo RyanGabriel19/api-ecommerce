@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.meuecommerce.api.controller.dto.CategoryRequestDTO;
 import com.meuecommerce.api.controller.dto.CategoryResponseDTO;
 import com.meuecommerce.api.domain.model.Category;
-import com.meuecommerce.api.domain.repository.CategoryRepository;
+import com.meuecommerce.api.domain.service.CategoryService;
 
 import jakarta.validation.Valid;
 
@@ -25,15 +25,15 @@ import jakarta.validation.Valid;
 @RequestMapping("/categories")
 public class CategoryController {
 
-    private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
 
-    public CategoryController(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
     }
 
     @GetMapping
     public List<CategoryResponseDTO> list() {
-        List<Category> categories = categoryRepository.findAll();
+        List<Category> categories = categoryService.findAll();
 
         return categories.stream()
             .map(category -> toResponseDTO(category))
@@ -42,7 +42,8 @@ public class CategoryController {
 
     @GetMapping("/{id}")
     public CategoryResponseDTO findById(@PathVariable Long id) {
-        Category category = categoryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Não encontrado"));
+
+        Category category = categoryService.findByIdOrThrow(id);
 
         return toResponseDTO(category);
     }
@@ -52,19 +53,18 @@ public class CategoryController {
     public CategoryResponseDTO add(@Valid @RequestBody CategoryRequestDTO categoryRequest) {
         Category category = toEntity(categoryRequest);
 
-        Category savedCategory = categoryRepository.save(category);
+        Category savedCategory = categoryService.save(category);
         
         return toResponseDTO(savedCategory);
     }
 
     @PutMapping("/{id}")
     public CategoryResponseDTO update(@PathVariable Long id, @Valid @RequestBody CategoryRequestDTO categoryRequest) {
-        Category existingCategory = categoryRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Categoria não encontrada com o ID: " + id));
+        Category existingCategory = categoryService.findByIdOrThrow(id);
 
          existingCategory.setName(categoryRequest.getName());
 
-         Category updatedCategory = categoryRepository.save(existingCategory);
+         Category updatedCategory = categoryService.save(existingCategory);
 
          return toResponseDTO(updatedCategory);
     }
@@ -72,11 +72,7 @@ public class CategoryController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(@PathVariable Long id) {
-        if (!categoryRepository.existsById(id)) {
-            throw new IllegalArgumentException("Categoria não encontrada para remoção. ID: " + id);
-        }
-
-        categoryRepository.deleteById(id);
+        categoryService.remove(id);
     }
 
     private CategoryResponseDTO toResponseDTO(Category category) {
