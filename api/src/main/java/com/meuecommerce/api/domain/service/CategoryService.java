@@ -16,13 +16,13 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
+    public List<Category> findAll() {
+        return categoryRepository.findAll();
+    }
+
     public Category findByIdOrThrow(Long id) {
         return categoryRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Categoria não encontrada. ID: " + id));
-    }
-
-    public List<Category> findAll() {
-        return categoryRepository.findAll();
     }
 
     public Category save(Category category) {

@@ -19,8 +19,8 @@ import com.meuecommerce.api.controller.dto.ProductRequestDTO;
 import com.meuecommerce.api.controller.dto.ProductResponseDTO;
 import com.meuecommerce.api.domain.model.Category;
 import com.meuecommerce.api.domain.model.Product;
-import com.meuecommerce.api.domain.repository.CategoryRepository;
-import com.meuecommerce.api.domain.repository.ProductRepository;
+import com.meuecommerce.api.domain.service.CategoryService;
+import com.meuecommerce.api.domain.service.ProductService;
 
 import jakarta.validation.Valid;
 
@@ -28,17 +28,17 @@ import jakarta.validation.Valid;
 @RequestMapping("/products")
 public class ProductController {
 
-    private final ProductRepository productRepository;
-    private final CategoryRepository categoryRepository;
+    private final ProductService productService;
+    private final CategoryService categoryService;
 
-    public ProductController(ProductRepository productRepository, CategoryRepository categoryRepository) {
-        this.productRepository = productRepository;
-        this.categoryRepository = categoryRepository;
+    public ProductController(ProductService productService, CategoryService categoryService) {
+        this.productService = productService;
+        this.categoryService = categoryService;
     }
 
     @GetMapping
     public List<ProductResponseDTO> list() {
-        return productRepository.findAll()
+        return productService.findAll()
         .stream()
         .map(product -> this.toResponseDTO(product))
         .collect(Collectors.toList());
@@ -46,8 +46,7 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ProductResponseDTO findById(@PathVariable Long id) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Não encontrado"));
-
+        Product product = productService.findByIdOrThrow(id);
         return toResponseDTO(product);
     }
 
@@ -56,7 +55,7 @@ public class ProductController {
     public ProductResponseDTO add(@Valid @RequestBody ProductRequestDTO productRequest) {
         Product product = toEntity(productRequest);
 
-        Product productSaved = productRepository.save(product);
+        Product productSaved = productService.save(product);
 
         return toResponseDTO(productSaved);
     }
@@ -64,22 +63,9 @@ public class ProductController {
     @PutMapping("/{id}")
     public ProductResponseDTO update(@PathVariable Long id, @Valid @RequestBody ProductRequestDTO productRequest) {
 
-        Product existingProduct = productRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado para atualização. ID: " + id));
+        Product productData = toEntity(productRequest);
 
-        existingProduct.setName(productRequest.getName());
-        existingProduct.setDescription(productRequest.getDescription());
-        existingProduct.setPrice(productRequest.getPrice());
-        existingProduct.setStockQuantity(productRequest.getStockQuantity());
-
-        if (productRequest.getCategoryId() != null) {
-            Category category = categoryRepository.findById(productRequest.getCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("Categoria não encontrada com o ID: " + productRequest.getCategoryId()));
-
-            existingProduct.setCategory(category);
-        }
-
-        Product productUpdated = productRepository.save(existingProduct);
+        Product productUpdated = productService.update(id, productData);
 
         return toResponseDTO(productUpdated);
     }
@@ -87,11 +73,7 @@ public class ProductController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(@PathVariable Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new IllegalArgumentException("Produto não encontrado para remoção. ID: " + id);
-        }
-
-        productRepository.deleteById(id);
+        productService.remove(id);
     }
 
     private ProductResponseDTO toResponseDTO (Product product) {
@@ -123,12 +105,10 @@ public class ProductController {
         product.setStockQuantity(productRequest.getStockQuantity());
 
         if (productRequest.getCategoryId() != null) {
-            Category category = categoryRepository.findById(productRequest.getCategoryId())
-            .orElseThrow(() -> new IllegalArgumentException("Categoria não encontrada com o ID: " + productRequest.getCategoryId()));
-
+            Category category = categoryService.findByIdOrThrow(productRequest.getCategoryId());
+            
             product.setCategory(category);
         }
-        
 
         return product;
     }

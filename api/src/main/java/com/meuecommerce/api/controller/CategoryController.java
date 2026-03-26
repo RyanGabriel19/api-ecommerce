@@ -60,13 +60,11 @@ public class CategoryController {
 
     @PutMapping("/{id}")
     public CategoryResponseDTO update(@PathVariable Long id, @Valid @RequestBody CategoryRequestDTO categoryRequest) {
-        Category existingCategory = categoryService.findByIdOrThrow(id);
+        Category categoryData = toEntity(categoryRequest);
 
-         existingCategory.setName(categoryRequest.getName());
+        Category updatedCategory = categoryService.update(id, categoryData);
 
-         Category updatedCategory = categoryService.save(existingCategory);
-
-         return toResponseDTO(updatedCategory);
+        return toResponseDTO(updatedCategory);
     }
 
     @DeleteMapping("/{id}")
